@@ -32,4 +32,4 @@ echo $UID
 export GID=$(id -g)
 
 # If we get here we are in the repo root – continue safely
-docker compose -f source/geniesim/generator/compose.yaml up -d
+docker compose -f source/geniesim/generator/compose.yaml up --build

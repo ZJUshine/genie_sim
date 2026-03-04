@@ -41,7 +41,9 @@ def main(args):
     # pprint(scene_info)
 
     # output folder
-    if args.scene_id != "":
+    if args.output_dir != "":
+        scene_path0_dir = args.output_dir
+    elif args.scene_id != "":
         scene_path0_dir = os.path.join(GENIESIM_PATH, f"benchmark/config/llm_task/{args.scene_id}")
     else:
         scene_path0_dir = os.path.join(GENIESIM_PATH, f"benchmark/config/llm_task/{scene_info['scene_id']}")
@@ -122,5 +124,6 @@ if __name__ == "__main__":
     parser.add_argument("--scene_id", type=str, default="", help="scene_id to save")
     parser.add_argument("--task_gen", action="store_true", default=False, help="Generate Task")
     parser.add_argument("--template_path", type=str, default="", help="LLM_RESULT template path")
+    parser.add_argument("--output_dir", type=str, default="", help="Custom output directory for generated files")
     args = parser.parse_args()
     main(args)

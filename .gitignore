@@ -47,3 +47,5 @@ logs
 .cache
 
 openpi/
+*.backup
+

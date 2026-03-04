@@ -31,17 +31,12 @@
   "editor.formatOnSave": true,
   "files.insertFinalNewline": true,
   "git.enableSmartCommit": true,
-  "python-envs.pythonProjects": [
-    {
-      "envManager": "ms-python.python:conda",
-      "packageManager": "ms-python.python:conda",
-      "path": ""
-    }
-  ],
   "python.formatting.provider": "black",
   "ros.distro": "humble",
   "ros.isolateEnvironment": "false",
   "ros.rosSetupScript": "/opt/ros/humble/install/setup.zsh",
   "security.workspace.trust.untrustedFiles": "open",
-  "terminal.integrated.inheritEnv": false
+  "terminal.integrated.inheritEnv": false,
+  "python-envs.defaultEnvManager": "ms-python.python:conda",
+  "python-envs.defaultPackageManager": "ms-python.python:conda"
 }
