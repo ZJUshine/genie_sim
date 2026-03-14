@@ -43,8 +43,8 @@ DEFAULT_TIMEOUT_GENERATOR = 180  # seconds
 STABILITY_WAIT = 2.0  # seconds for content stability check (fallback)
 POLL_INTERVAL = 1.0  # seconds between stability polls
 
-# Default LLM_RESULT output path (matches save_to_local.py default)
-DEFAULT_LLM_RESULT_DIR = Path(__file__).resolve().parent
+# Default LLM_RESULT output path (save_to_local.py writes to generator/)
+DEFAULT_LLM_RESULT_DIR = Path(__file__).resolve().parent.parent / "generator"
 
 
 # ---------------------------------------------------------------------------
@@ -81,7 +81,7 @@ class PlaywrightAutomator:
         self._playwright = sync_playwright().start()
         self._browser = self._playwright.chromium.launch(headless=self.headless)
         self._context = self._browser.new_context(
-            viewport={"width": 1440, "height": 900},
+            viewport={"width": 2000, "height": 1200},
             locale="en-US",
         )
         self.page = self._context.new_page()
@@ -261,10 +261,6 @@ def run_scene_generation(
         assistant_response = automator.get_last_response_text()
         logger.info("Assistant response length: %d chars", len(assistant_response))
 
-        # Save assistant response
-        (output_path / "assistant_response.txt").write_text(assistant_response, encoding="utf-8")
-        logger.info("Saved assistant_response.txt")
-
         # ── Step 2: GenieSim Generator (code generation) ──────────
         # Stay in the same chat window so the Generator can see the
         # Assistant's response as conversation context.
@@ -276,13 +272,6 @@ def run_scene_generation(
         
         automator.send_message("generate the scene")
         automator.wait_for_response(timeout_generator)
-
-        generator_response = automator.get_last_response_text()
-        logger.info("Generator response length: %d chars", len(generator_response))
-
-        # Save generator response
-        (output_path / "generator_response.txt").write_text(generator_response, encoding="utf-8")
-        logger.info("Saved generator_response.txt")
 
         # ── Step 3: Save code via UI button ───────────────────────
         logger.info("═" * 60)
@@ -367,7 +356,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--verbose",
         action="store_true",
-        default=True,
+        default=False,
         help="Enable verbose (DEBUG) logging",
     )
     return parser.parse_args()
