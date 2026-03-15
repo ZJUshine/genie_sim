@@ -399,6 +399,9 @@ class APICore:
     def get_observation_image(self, dir):
         return self.run_on_physics_loop(self._get_observation_image, dir)
 
+    def get_observation_depth(self, dir):
+        return self.run_on_physics_loop(self._get_observation_depth, dir)
+
     def count_visible_meshes(self, prim_path: str):
         stage = get_current_stage()
         root_prim = stage.GetPrimAtPath(prim_path)
@@ -515,7 +518,9 @@ class APICore:
         self._physics_info = {}
         collect_physics(self._physics_info)
         if robot_articulation:
-            update_stage()
+            for i in range(20):
+                update_stage()
+                time.sleep(0.01)
             self.init_frame_info = store_init_physics(robot_articulation, self._physics_info)
 
     def _get_joint_state_dict(self):
@@ -523,6 +528,9 @@ class APICore:
 
     def _get_observation_image(self, dir):
         return self.robot_interface.get_observation_image(dir)
+
+    def _get_observation_depth(self, dir):
+        return self.robot_interface.get_observation_depth(dir)
 
     def _play(self):
         self.ui_builder.my_world.play()

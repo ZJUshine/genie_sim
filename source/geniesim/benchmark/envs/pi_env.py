@@ -36,7 +36,7 @@ class PiEnv(DummyEnv):
             init_task_config,
             need_setup,
         )
-        self.LIMIT_VAL = 0.8
+        self.LIMIT_VAL = 1.0
         self.load_task_setup()
 
     def load_task_setup(self):
@@ -45,10 +45,12 @@ class PiEnv(DummyEnv):
     def get_observation(self):
         for i in range(10):
             images = self.data_courier.get_observation_image()
-            if images == {}:
+            depth = self.data_courier.get_observation_depth()
+            if images == {} or depth == {}:
                 time.sleep(0.1)
             else:
                 break
+
         full_joint_states = self.data_courier.get_joint_state_dict()
         states = []
         if "G1" in self.robot_cfg:
@@ -64,17 +66,24 @@ class PiEnv(DummyEnv):
 
         for name in OMNIPICKER_AJ_NAMES:
             states.append(full_joint_states[name])
-        obs = {"images": images, "states": states}
+
+        if "G2" in self.robot_cfg:
+            for name in G2_WAIST_JOINT_NAMES[::-1]:
+                states.append(full_joint_states[name])
+        obs = {"images": images, "states": states, "depth": depth}
+        # Left/right gripper center eef pose [x, y, z, qw, qx, qy, qz]
+        obs["eef"] = self.ikfk_solver.compute_eef(self.cur_arm)
         relabel_gripper_state(obs, self.LIMIT_VAL)
         return obs
 
     def reset(self):
+        self._followed_objects = set()  # Clear on new scene/episode (scene generalization)
         self.last_update_time = time.time()
         self.has_done = False
         self.task.reset(self)
         self.robot_joint_indices = self.api_core.get_robot_joint_indices()
         eps = 1e-2
-        while True:
+        for i in range(10):
             print("Robot reset...")
             init_gripper = [1 - v for v in self.init_gripper]
 
@@ -141,6 +150,9 @@ class PiEnv(DummyEnv):
         elif self.robot_cfg == "G2_omnipicker":
             self.api_core.set_joint_positions([float(v) for v in action[:14]],joint_indices=[self.robot_joint_indices[v] for v in G2_DUAL_ARM_JOINT_NAMES],is_trajectory=True)
             self.api_core.set_joint_positions([float(v) for v in gripper_action], joint_indices=[self.robot_joint_indices[v] for v in OMNIPICKER_AJ_NAMES], is_trajectory=True)
+            if len(action) > 16: # Including waist control
+                self.api_core.set_joint_positions([float(v) for v in action[20:21]],joint_indices=[self.robot_joint_indices[v] for v in G2_WAIST_JOINT_NAMES[0:1]],is_trajectory=True)
+
         # fmt: on
         next_obs = self.get_observation()
         if self.data_courier.enable_ros:
